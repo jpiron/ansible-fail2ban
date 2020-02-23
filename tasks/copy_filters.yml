@@ -1,10 +1,25 @@
-- name: copy filters
+- name: copy filter files
   copy:
-    src: "{{ fail2ban_filterd_path }}"
-    dest: /etc/fail2ban/filter.d/
+    src: "{{ item }}"
+    dest: "/etc/fail2ban/filter.d/{{ item | basename }}"
     owner: root
     group: root
     mode: 0644
+  with_fileglob: "{{ fail2ban_filterd_path }}*.conf"
+  notify: restart fail2ban
+  tags:
+    - configuration
+    - fail2ban
+    - fail2ban-filters
+
+- name: copy filter templates
+  template:
+    src: "{{ item }}"
+    dest: "/etc/fail2ban/filter.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_fileglob: "{{ fail2ban_filterd_path }}*.j2"
   notify: restart fail2ban
   tags:
     - configuration

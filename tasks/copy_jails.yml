@@ -1,10 +1,25 @@
-- name: copy jails
+- name: copy jail files
   copy:
-    src: "{{ fail2ban_jaild_path }}"
-    dest: /etc/fail2ban/jail.d/
+    src: "{{ item }}"
+    dest: "/etc/fail2ban/jail.d/{{ item | basename }}"
     owner: root
     group: root
     mode: 0644
+  with_fileglob: "{{ fail2ban_jaild_path }}*.conf"
+  notify: restart fail2ban
+  tags:
+    - configuration
+    - fail2ban
+    - fail2ban-jails
+
+- name: copy jail templates
+  template:
+    src: "{{ item }}"
+    dest: "/etc/fail2ban/jail.d/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_fileglob: "{{ fail2ban_jaild_path }}*.j2"
   notify: restart fail2ban
   tags:
     - configuration
